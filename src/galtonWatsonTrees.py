@@ -4,6 +4,7 @@ import numpy as np
 from math import atan2,degrees,sin,cos,radians,copysign
 from scipy.stats import norm
 import warnings 
+from matplotlib import collections as mc
 """
 **********************************************
 File: PoissonPlotting.py
@@ -52,23 +53,36 @@ class Node:
 		b = [self.parent.pose[1],self.pose[1]]; 
 		return [a,b]; 
 
-def plotTree(root,ax=None,pausing = 0):
+def plotTree(root,ax=None,leaves = True,pausing = 0):
 	plt.cla();
 	allNodes = runDFSAll(root);  
 	allEx = runDFSEx(root); 
 
+	allLines = []
+	allWidths = []; 
 	for nodee in allNodes:
 		if(nodee is not root and nodee.dead == False):
 			tmp = nodee.convertForPlot(); 
 			if(ax is not None):
-				plt.plot(tmp[0],tmp[1],linewidth=10-nodee.depth,color='xkcd:brown',solid_capstyle='round');
+				#plt.plot(tmp[0],tmp[1],linewidth=10-nodee.depth,color='xkcd:brown',solid_capstyle='round');
+				allLines.append([(tmp[0][0],tmp[1][0]),(tmp[0][1],tmp[1][1])]); 
+				allWidths.append(10-nodee.depth); 
 			else:
-				plt.plot(tmp[0],tmp[1],color = 'b');
+				allLines.append([(tmp[0][0],tmp[1][0]),(tmp[0][1],tmp[1][1])]); 
+				#plt.plot(tmp[0],tmp[1],color = 'b');
 
-			if(nodee in allEx and ax is not None):
+
+			if(leaves and nodee in allEx and ax is not None):
 				circ = plt.Circle((nodee.pose[0],nodee.pose[1]),1.5,facecolor='g',alpha = 0.75); 
 				ax.add_patch(circ);
+	if(len(allWidths) == 0):
+		allWidths = 1; 
+	lc = mc.LineCollection(allLines,colors = 'xkcd:brown',linewidths=allWidths); 
+	#lc = mc.LineCollection(allLines); 
+	ax.add_collection(lc); 
+
 	if(pausing == 0):
+		ax.autoscale();
 		plt.show(); 
 	else:
 		plt.xlim([-12,12]); 
@@ -123,6 +137,9 @@ def make2SplitTree(depth = 7):
 	layerLengths = [np.sqrt(trunkHeight)-np.sqrt(i) for i in range(0,trunkHeight-1)]; 
 	layerNodes = []; 
 
+	fig = plt.figure(); 
+	ax = fig.add_subplot(111); 
+
 
 	layerNodes.append([node1]); 
 	for i in range(0,len(layerLengths)): 
@@ -140,7 +157,7 @@ def make2SplitTree(depth = 7):
 		layerNodes.append(thisLayer); 
 
 
-	plotTree(root); 
+	plotTree(root,ax,False,0); 
 
 def makeProbSplitTree(depth = 6,steps = 10):
 	warnings.filterwarnings("ignore")
@@ -155,10 +172,10 @@ def makeProbSplitTree(depth = 6,steps = 10):
 	# Tuning Nobs
 	#dispersalTuner = 5; #rate of damping at distance
 	#variance = 1.2; #rate of growth
-	dispersalTuner = 4; 
+	dispersalTuner = 3; 
 	variance = .5;
 	degSplit = 33;#tree dispersal
-	
+	lev = False; #plot leaves
 
 	probs = np.zeros(shape=(depth+1,len(k)));  
 	for i in range(0,depth+1):
@@ -179,6 +196,7 @@ def makeProbSplitTree(depth = 6,steps = 10):
 	sign = lambda x:copysign(1,x); 
 
 	for i in range(0,steps): 
+		print(i); 
 		thisLayer = runDFSEx(root); 
 		for nod in thisLayer:
 			if(nod.depth >= depth):
@@ -203,11 +221,11 @@ def makeProbSplitTree(depth = 6,steps = 10):
 					 
 
 		#print(i); 
-		plotTree(root,ax,0.01); 
+		plotTree(root,ax,lev,0.01); 
 
 	plotTree(root,ax); 
 
 if __name__ == '__main__':
-	#make2SplitTree(11); 
+	#make2SplitTree(8); 
 	makeProbSplitTree(10,100); 
 
