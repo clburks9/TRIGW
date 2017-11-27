@@ -7,7 +7,7 @@ import warnings
 from matplotlib import collections as mc
 """
 **********************************************
-File: PoissonPlotting.py
+File: galtonWatsonTrees.py
 Author: Luke Burks
 Date: November 2017
 
@@ -175,7 +175,7 @@ def makeProbSplitTree(depth = 6,steps = 10):
 	dispersalTuner = 3; 
 	variance = .5;
 	degSplit = 33;#tree dispersal
-	lev = False; #plot leaves
+	lev = True; #plot leaves
 
 	probs = np.zeros(shape=(depth+1,len(k)));  
 	for i in range(0,depth+1):
